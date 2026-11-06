@@ -1,0 +1,65 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class CustomerContact <<final>> {
+  - name: String
+  - email: String
+  - phone: String
+  + CustomerContact(name: String, email: String, phone: String)
+  + getName(): String
+  + getEmail(): String
+  + getPhone(): String
+}
+
+interface NotificationChannel {
+  + channelName(): String
+  + send(contact: CustomerContact, message: String): boolean
+}
+
+abstract class AbstractChannel {
+  - sentCount: int
+  - lastDelivered: String
+  + {final} send(contact: CustomerContact, message: String): boolean
+  # {abstract} resolveRecipient(contact: CustomerContact): String
+  # prepare(message: String): String
+  # {abstract} deliver(recipient: String, message: String): boolean
+  + getSentCount(): int
+  + getLastDelivered(): String
+}
+
+class EmailChannel {
+  + channelName(): String
+  # resolveRecipient(contact: CustomerContact): String
+  # deliver(recipient: String, message: String): boolean
+}
+
+class SmsChannel {
+  - maxLength: int
+  + SmsChannel(maxLength: int)
+  + channelName(): String
+  # resolveRecipient(contact: CustomerContact): String
+  # prepare(message: String): String
+  # deliver(recipient: String, message: String): boolean
+}
+
+class WhatsAppChannel {
+  + channelName(): String
+  # resolveRecipient(contact: CustomerContact): String
+  # prepare(message: String): String
+  # deliver(recipient: String, message: String): boolean
+}
+
+class NotificationService {
+  - channels: List<NotificationChannel>
+  + register(channel: NotificationChannel): void
+  + broadcast(contact: CustomerContact, message: String): int
+}
+
+NotificationChannel <|.. AbstractChannel
+AbstractChannel <|-- EmailChannel
+AbstractChannel <|-- SmsChannel
+AbstractChannel <|-- WhatsAppChannel
+NotificationService o-- "0..*" NotificationChannel : registers / broadcasts
+AbstractChannel ..> CustomerContact : resolves recipient
+NotificationService ..> CustomerContact : broadcasts to
+@enduml
